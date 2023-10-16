@@ -8,7 +8,7 @@ public class Modran : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "PlayerCharacterModule", "CoreAIModule" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "PlayerCharacterModule", "CoreAIModule", "GameplayModule" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

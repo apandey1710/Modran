@@ -28,6 +28,11 @@
 				"Engine",
 				"AIModule"
 			]
+		},
+		{
+			"Name": "GameplayModule",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
 		}
 	],
 	"Plugins": [
