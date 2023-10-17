@@ -42,4 +42,8 @@ public:
 protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
+
+private:
+	inline void DrawDebugArrowInDirection(FVector const& Direction, FColor const& Color) const;
 };
+

@@ -23,14 +23,19 @@ AMPlayerCharacter::AMPlayerCharacter()
 
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
 
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
-
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->buse
 
 	
 }
@@ -53,6 +58,8 @@ void AMPlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	DrawDebugArrowInDirection(GetControlRotation().Vector(), FColor::Green);
+	DrawDebugArrowInDirection(GetActorForwardVector(), FColor::Red);
 }
 
 void AMPlayerCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -82,7 +89,6 @@ void AMPlayerCharacter::Move(const FInputActionValue& Value)
 		const FVector RightDirection = FRotationMatrix(MovementRotation).GetUnitAxis(EAxis::Y);
 
 		AddMovementInput(ForwardDirection, Movement.Y);
-		AddControllerYawInput(Movement.X);
 		AddMovementInput(RightDirection, Movement.X);
 	}
 }
@@ -93,7 +99,26 @@ void AMPlayerCharacter::Look(const FInputActionValue& Value)
 
 	if(ensure(IsValid(Controller)))
 	{
-		AddControllerYawInput(LookVector.X);
-		AddControllerPitchInput(LookVector.Y);
+		FRotator NewRotation = SpringArmComponent->GetComponentRotation();
+		NewRotation.Yaw += LookVector.X;
+		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch + LookVector.Y, -80.0f, 80.0f);
+
+		FString DebugMessage = FString::Printf(TEXT("Boom Rotation (x, y, z): (%f, %f, %f)"),
+			NewRotation.Vector().X, NewRotation.Vector().Y, NewRotation.Vector().Z);
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, DebugMessage);
+		
+		SpringArmComponent->SetWorldRotation(NewRotation);
+		// AddControllerYawInput(LookVector.X);
+		// AddControllerPitchInput(LookVector.Y);
 	}
+}
+
+inline void AMPlayerCharacter::DrawDebugArrowInDirection(FVector const& Direction, FColor const& Color) const
+{
+	const FVector ArrowStart = GetActorLocation() + FVector(0.0f, -200.0f, 0.0f);
+	constexpr float ArrowLength = 300.0f;
+	const FVector ArrowEnd = ArrowStart + Direction * ArrowLength;
+
+	DrawDebugDirectionalArrow(GetWorld(), ArrowStart, ArrowEnd, 200.0f, Color,
+		false, -1, 0, 4.0f);
 }
