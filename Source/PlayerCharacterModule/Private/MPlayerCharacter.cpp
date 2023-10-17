@@ -12,30 +12,32 @@ AMPlayerCharacter::AMPlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
-	SpringArmComponent->bUsePawnControlRotation = true;
-	SpringArmComponent->SetupAttachment(RootComponent);
-	// ACharacter::GetMovementComponent()
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
+	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
+	SpringArmComponent->SetupAttachment(RootComponent);
+	SpringArmComponent->TargetArmLength = 350.0f;
+	SpringArmComponent->bUsePawnControlRotation = true;
+	
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
 
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.f);
-
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
+
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
-	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->buse
+
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 
 	
 }
@@ -97,19 +99,13 @@ void AMPlayerCharacter::Look(const FInputActionValue& Value)
 {
 	FVector2d LookVector = Value.Get<FVector2d>();
 
-	if(ensure(IsValid(Controller)))
-	{
-		FRotator NewRotation = SpringArmComponent->GetComponentRotation();
-		NewRotation.Yaw += LookVector.X;
-		NewRotation.Pitch = FMath::Clamp(NewRotation.Pitch + LookVector.Y, -80.0f, 80.0f);
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
 
-		FString DebugMessage = FString::Printf(TEXT("Boom Rotation (x, y, z): (%f, %f, %f)"),
-			NewRotation.Vector().X, NewRotation.Vector().Y, NewRotation.Vector().Z);
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, DebugMessage);
-		
-		SpringArmComponent->SetWorldRotation(NewRotation);
-		// AddControllerYawInput(LookVector.X);
-		// AddControllerPitchInput(LookVector.Y);
+	if (ensure(IsValid(Controller)))
+	{
+		// add yaw and pitch input to controller
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
 	}
 }
 
